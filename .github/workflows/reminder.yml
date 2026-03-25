@@ -1,0 +1,25 @@
+name: Water Reminder Automation
+on:
+  schedule:
+    # Subah 7:00 baje se raat 10:00 baje tak (Har 3 ghante baad)
+    # 02:00 UTC = 07:00 AM PKT
+    - cron: '0 2,5,8,11,14,17 * * *'
+  workflow_dispatch: # Taake aap button daba kar abhi test kar sakein
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send FCM Notification
+        run: |
+          curl -X POST "https://fcm.googleapis.com/fcm/send" \
+          -H "Authorization: key=AIzaSyBR1pl7vYjxX8iRQ_0b5B9XDRM1u9jbjPI" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "to": "d7OyIRHiM55ud68XDsdTeM:APA91bHnfMMIwiOnGCFhZbHrecpNRGe2Cks03d6PiaiT3Eddyr46roKqXuuCRGD_8jXzb9eZvIjU59f4BPhqOxtZWNLjfmE4tu53Jx9g6zFwB_r2259xooE",
+            "notification": {
+              "title": "💧 Pani Peeyein!",
+              "body": "Haseeb Bhai, sehat ke liye ek glass pani peeyein.",
+              "icon": "https://cdn-icons-png.flaticon.com/512/3105/3105807.png"
+            }
+          }'
