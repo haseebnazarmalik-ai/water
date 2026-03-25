@@ -1,8 +1,8 @@
 name: Water Reminder Automation
 on:
   schedule:
-    # Saudi Time (UTC+3):
-    # 05:00 UTC = 08:00 AM AST (Saudi)
+    # Saudi Arabia Time (UTC+3)
+    # 05:00 UTC = 08:00 AM AST
     # 08:00 UTC = 11:00 AM AST
     # 11:00 UTC = 02:00 PM AST
     # 14:00 UTC = 05:00 PM AST
@@ -28,7 +28,8 @@ jobs:
           
           payload = {
               "message": {
-                  "token": "c0Jmt3RD6c2HAoe_pOeek9:APA91bF910QQfOLxk-vyLG86l2gTGrN3aiMV2HmGXLFNwdkh0mLeUsmJ93gCPlYnbwOCHaln-lQtjexfMiTegP5dj8EudElQa3ZYSvNWniVvgAp-uJn0kRE",
+                  # Corrected Token from your screenshot
+                  "token": "c0Jmt3RD6c2HAoe_pOeek9:APA91bF910QQfOLxk-vyLG86l2gTGrN3aiMV2HmGXLFNwdkh0mLeUsmJ93gCPIYnbwOCHaIn-IQtjexfMiTegP5dj8EudEIQa3ZYSvNWniVvgAp-uJn0kRE",
                   "notification": {
                       "title": "💧 Pani Peeyein!",
                       "body": "Haseeb Bhai, sehat ke liye ek glass pani peeyein."
