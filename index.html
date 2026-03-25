@@ -4,43 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pani Reminder - Sehat Awami</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBhbmkgUmVtaW5kZXIiLAogICJzaG9ydF9uYW1lIjogIlBhbmkiLAogICJzdGFydF91cmwiOiAiLi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjMDI4OGQxIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzEwNS8zMTA1ODA3LnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
-    
     <style>
         :root { --primary: #0288d1; --secondary: #4caf50; --danger: #f44336; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { max-width: 500px; width: 100%; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        h1 { color: var(--primary); margin-bottom: 10px; }
-        .status-card { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
-        .btn-main { color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; direction: rtl; }
+        .app-container { max-width: 500px; width: 100%; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: var(--primary); margin: 10px 0; }
+        .status-card { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--primary); }
+        .btn-main { color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px; }
         .btn-start { background: var(--secondary); }
         .btn-stop { background: var(--danger); }
-        .next-box { margin: 20px 0; padding: 15px; background: #fff3e0; border-radius: 10px; font-weight: bold; color: #e65100; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px; text-align: right; direction: rtl; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; }
-        .done-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); color: white; z-index: 2000; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .done-overlay h2 { font-size: 2rem; color: #4fc3f7; }
+        .next-box { margin: 15px 0; padding: 12px; background: #fff3e0; border-radius: 10px; font-weight: bold; color: #e65100; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+        .status-done { color: var(--secondary); font-weight: bold; }
+        .status-pending { color: #999; }
+        .done-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); color: white; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <h1>💧 Pani Peeyo</h1>
-        <p>Haddiyon ke dard se nijat ke liye hydration zaroori hai.</p>
-        
         <div class="status-card">
-            <p id="msg">Reminder Status:</p>
+            <p id="msg" style="margin:0 0 10px 0;">Reminder Status:</p>
             <button class="btn-main btn-start" id="toggle-btn">Start Reminders</button>
         </div>
 
-        <div class="next-box" id="next-timer">Agla glass: Loading...</div>
+        <div class="next-box" id="next-timer">Agla glass check ho raha hai...</div>
 
         <table>
             <thead>
                 <tr>
                     <th>Waqt</th>
                     <th>Miqdar</th>
-                    <th>Faida</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="schedule-list"></tbody>
@@ -48,115 +45,128 @@
     </div>
 
     <div id="done-overlay" class="done-overlay">
-        <h2>🔔 Pani Ka Waqt!</h2>
-        <p id="notif-desc" style="font-size: 1.2rem; margin: 20px;"></p>
-        <button class="btn-main btn-start" onclick="markDone()" style="width: 200px;">Main Ne Pi Liya ✅</button>
-        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+        <h2 style="font-size: 2.5rem;">🔔 PANI PEEIN!</h2>
+        <p id="notif-desc" style="font-size: 1.3rem; margin: 20px;"></p>
+        <button class="btn-main btn-start" onclick="markDone()" style="width: 250px; font-size: 20px;">Maine Pi Liya ✅</button>
+        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" loop></audio>
     </div>
 
     <script>
         const schedule = [
-            { time: "07:00", label: "Subah Uthte hi", amount: "1-2 Glass" },
-            { time: "08:30", label: "Nashte se 30 min pehle", amount: "1 Glass" },
-            { time: "11:00", label: "Nashte aur Dopahar darmiyan", amount: "2 Glass" },
-            { time: "13:30", label: "Dopahar khane se pehle", amount: "1 Glass" },
-            { time: "16:30", label: "Dopahar aur Sham darmiyan", amount: "2 Glass" },
-            { time: "18:30", label: "Sham ke waqt", amount: "1 Glass" },
-            { time: "20:30", label: "Raat khane se pehle", amount: "1 Glass" },
-            { time: "22:00", label: "Sone se 1 ghanta pehle", amount: "1 Glass" }
+            { id: 0, time: "07:00", label: "Subah Uthte hi", amount: "1-2 Glass" },
+            { id: 1, time: "08:30", label: "Nashte se pehle", amount: "1 Glass" },
+            { id: 2, time: "11:00", label: "Joints Lubrication", amount: "2 Glass" },
+            { id: 3, time: "13:30", label: "Khane se pehle", amount: "1 Glass" },
+            { id: 4, time: "16:30", label: "Energy Booster", amount: "2 Glass" },
+            { id: 5, time: "18:30", label: "Toxins Removal", amount: "1 Glass" },
+            { id: 6, time: "20:30", label: "Khane se pehle", amount: "1 Glass" },
+            { id: 7, time: "22:00", label: "Haddiyon ki repair", amount: "1 Glass" }
         ];
 
+        let currentTaskId = null;
         let snoozeInterval = null;
         let isRunning = localStorage.getItem('pani_running') === 'true';
-        const toggleBtn = document.getElementById('toggle-btn');
+        let logs = JSON.parse(localStorage.getItem('pani_logs') || '{}');
+
+        // Check if day changed (Reset logs)
+        const today = new Date().toDateString();
+        if (localStorage.getItem('last_date') !== today) {
+            logs = {};
+            localStorage.setItem('last_date', today);
+            localStorage.setItem('pani_logs', JSON.stringify(logs));
+        }
+
+        const list = document.getElementById('schedule-list');
         const overlay = document.getElementById('done-overlay');
         const sound = document.getElementById('notif-sound');
 
-        // Table load
-        const list = document.getElementById('schedule-list');
-        schedule.forEach(item => {
-            list.innerHTML += `<tr><td>${item.time}</td><td>${item.amount}</td><td>Zaroori</td></tr>`;
-        });
+        function renderTable() {
+            list.innerHTML = "";
+            schedule.forEach(item => {
+                const isDone = logs[item.id] === true;
+                list.innerHTML += `
+                    <tr>
+                        <td>${item.time}</td>
+                        <td>${item.amount}</td>
+                        <td class="${isDone ? 'status-done' : 'status-pending'}">${isDone ? '✅ Done' : '⏳ Pending'}</td>
+                    </tr>`;
+            });
+        }
 
-        // Button State Handle
         function updateButtonUI() {
+            const btn = document.getElementById('toggle-btn');
             if (isRunning) {
-                toggleBtn.innerText = "Stop Reminders";
-                toggleBtn.className = "btn-main btn-stop";
-                document.getElementById('msg').innerText = "✅ Reminders ON Hain";
+                btn.innerText = "Stop Reminders";
+                btn.className = "btn-main btn-stop";
+                document.getElementById('msg').innerText = "✅ Reminders Chalu Hain";
             } else {
-                toggleBtn.innerText = "Start Reminders";
-                toggleBtn.className = "btn-main btn-start";
-                document.getElementById('msg').innerText = "❌ Reminders OFF Hain";
+                btn.innerText = "Start Reminders";
+                btn.className = "btn-main btn-start";
+                document.getElementById('msg').innerText = "❌ Reminders Band Hain";
             }
         }
-        updateButtonUI();
 
-        toggleBtn.onclick = async () => {
+        document.getElementById('toggle-btn').onclick = async () => {
             if (!isRunning) {
                 const permission = await Notification.requestPermission();
-                if (permission === "granted") {
-                    isRunning = true;
-                    localStorage.setItem('pani_running', 'true');
-                    updateButtonUI();
-                } else {
-                    alert("Please allow notifications!");
-                }
+                isRunning = true;
             } else {
                 isRunning = false;
-                localStorage.setItem('pani_running', 'false');
                 clearInterval(snoozeInterval);
-                updateButtonUI();
             }
+            localStorage.setItem('pani_running', isRunning);
+            updateButtonUI();
         };
 
-        // Main Tracker
         setInterval(() => {
             if (!isRunning) return;
-
             const now = new Date();
-            const currentStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             
-            const task = schedule.find(t => t.time === currentStr);
-            if (task) {
-                triggerAlert(task);
+            const task = schedule.find(t => t.time === timeStr);
+            // Agar task mile aur wo pehle se done na ho
+            if (task && !logs[task.id]) {
+                currentTaskId = task.id;
+                triggerAlarm(task);
             }
-            updateNextReminder(currentStr);
-        }, 1000 * 60);
+            
+            const next = schedule.find(t => t.time > timeStr) || schedule[0];
+            document.getElementById('next-timer').innerText = `Agla glass: ${next.time} (${next.label})`;
+        }, 30000);
 
-        function triggerAlert(task) {
+        function triggerAlarm(task) {
             document.getElementById('notif-desc').innerText = `${task.label}: ${task.amount} peeyein.`;
             overlay.style.display = 'flex';
-            sound.play(); // Wing baje gi
-
-            // Browser Notification bhi bhejey
+            sound.play();
+            if ("vibrate" in navigator) navigator.vibrate([500, 200, 500]);
+            
             new Notification("💧 Pani Ka Waqt!", { body: task.label, requireInteraction: true });
 
-            // Har 5 minute baad repeat jab tak done na ho
             if (snoozeInterval) clearInterval(snoozeInterval);
             snoozeInterval = setInterval(() => {
                 if (overlay.style.display === 'flex') {
                     sound.play();
-                    new Notification("⚠️ Yaad Dehani!", { body: "Pani pi lein, 5 min ho gaye!" });
+                    new Notification("⚠️ Yaad Dehani!", { body: "Jaldi pani pi kar Done karein!" });
                 }
-            }, 300000); // 300000ms = 5 minutes
+            }, 300000); 
         }
 
-        function markDone() {
+        window.markDone = function() {
             overlay.style.display = 'none';
             sound.pause();
             sound.currentTime = 0;
-            if (snoozeInterval) clearInterval(snoozeInterval);
-        }
+            clearInterval(snoozeInterval);
+            
+            if (currentTaskId !== null) {
+                logs[currentTaskId] = true;
+                localStorage.setItem('pani_logs', JSON.stringify(logs));
+                renderTable();
+            }
+        };
 
-        function updateNextReminder(nowStr) {
-            const next = schedule.find(t => t.time > nowStr) || schedule[0];
-            document.getElementById('next-timer').innerText = `Agla glass: ${next.time} (${next.label})`;
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
-        }
+        // Initial Load
+        renderTable();
+        updateButtonUI();
     </script>
 </body>
 </html>
