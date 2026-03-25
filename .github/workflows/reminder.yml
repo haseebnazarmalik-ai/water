@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send FCM Notification
-        # Yahan hum third-party tool bypass karke Google's direct method use karein ge
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
           pip install google-auth requests
@@ -19,16 +18,23 @@ jobs:
           creds = google.oauth2.service_account.Credentials.from_service_account_file('service-account.json', scopes=scoops)
           creds.refresh(google.auth.transport.requests.Request())
           headers = {'Authorization': 'Bearer ' + creds.token, 'Content-Type': 'application/json'}
+          
           payload = {
               "message": {
-                  # Aapka naya Token yahan hai
-                  "token": "c0Jmt3RD6c2HAoe_pOeek9:APA91bF910QQfOLxk-vyLG86l2gTGrN3aiMV2HmGXLFNwdkh0mLeUsmJ93gCPlYnbwOCHaln-lQtjexfMiTegP5dj8EudElQa3ZYSvNWniVvgAp-uJn0kRE",
+                  "token": "fItb6dEkg04m6XwpCsP2zs:APA91bEiKrdKLviQrD_Q6v5LjZn0CTUjn_JpT8y9s73BZikDM5a5Gvyw9ERpvyLA2QCgG5GQgfHOLNYQ6QpnPH5S4DByEeo-zA1jCSHmJndabXcrJ4rTu3s",
                   "notification": {
                       "title": "💧 Pani Peeyein!",
                       "body": "Haseeb Bhai, sehat ke liye ek glass pani peeyein."
+                  },
+                  "android": { "priority": "high" },
+                  "webpush": {
+                      "headers": { "Urgency": "high" },
+                      "fcm_options": { "link": "https://haseebnazarmalik-ai.github.io/water/" }
                   }
               }
           }
+          
           response = requests.post("https://fcm.googleapis.com/v1/projects/water-aa9c4/messages:send", headers=headers, json=payload)
-          print(response.status_code); print(response.text)
+          print(f"Status: {response.status_code}")
+          print(f"Response: {response.text}")
           EOF
