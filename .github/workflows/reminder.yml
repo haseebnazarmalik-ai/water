@@ -29,7 +29,7 @@ jobs:
           payload = {
               "message": {
                   # Corrected Token from your screenshot
-                  "token": "c0Jmt3RD6c2HAoe_pOeek9:APA91bF910QQfOLxk-vyLG86l2gTGrN3aiMV2HmGXLFNwdkh0mLeUsmJ93gCPIYnbwOCHaIn-IQtjexfMiTegP5dj8EudEIQa3ZYSvNWniVvgAp-uJn0kRE",
+                  "token": "fItb6dEkg04m6XwpCsP2zs:APA91bEiKrdKLviQrD_Q6v5LjZn0CTUjn_JpT8y9s73BZikDM5a5Gvyw9ERpvyLA2QCgG5GQgfHOLNYQ6QpnPH5S4DByEeo-zA1jCSHmJndabXcrJ4rTu3s",
                   "notification": {
                       "title": "💧 Pani Peeyein!",
                       "body": "Haseeb Bhai, sehat ke liye ek glass pani peeyein."
