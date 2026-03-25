@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pani Reminder - Sehat Awami</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBhbmkgUmVtaW5kZXIiLAogICJzaG9ydF9uYW1lIjogIlBhbmkiLAogICJzdGFydF91cmwiOiAiLi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjMDI4OGQxIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzEwNS8zMTA1ODA3LnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
+    
+    <style>
+        /* CSS Styling */
+        :root { --primary: #0288d1; --secondary: #4caf50; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { max-width: 500px; width: 100%; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        .status-card { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
+        .btn-main { background: var(--secondary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-main:hover { background: #388e3c; }
+        .next-box { margin: 20px 0; padding: 15px; background: #fff3e0; border-radius: 10px; font-weight: bold; color: #e65100; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px; text-align: right; direction: rtl; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; color: #555; }
+        .done-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>💧 Pani Peeyo</h1>
+        <p>Haddiyon ke dard se nijat ke liye hydration zaroori hai.</p>
+        
+        <div class="status-card" id="status-area">
+            <p id="msg">Notifications activate karein:</p>
+            <button class="btn-main" id="enable-btn">Start Reminders</button>
+        </div>
+
+        <div class="next-box" id="next-timer">Agla glass: Check ho raha hai...</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Waqt</th>
+                    <th>Miqdar</th>
+                    <th>Faida</th>
+                </tr>
+            </thead>
+            <tbody id="schedule-list"></tbody>
+        </table>
+    </div>
+
+    <div id="done-overlay" class="done-overlay">
+        <h2>🔔 Pani Peene Ka Waqt!</h2>
+        <p id="notif-desc"></p>
+        <button class="btn-main" onclick="markDone()" style="width: 200px; margin-top: 20px;">Main Ne Pi Liya ✅</button>
+    </div>
+
+    <script>
+        // Data Schedule
+        const schedule = [
+            { time: "07:00", label: "Subah Uthte hi", amount: "1-2 Glass", benefit: "Back pain relief" },
+            { time: "08:30", label: "Nashte se 30 min pehle", amount: "1 Glass", benefit: "Hazme ke liye" },
+            { time: "11:00", label: "Nashte aur Dopahar darmiyan", amount: "2 Glass", benefit: "Haddiyon ki lubrication" },
+            { time: "13:30", label: "Dopahar khane se pehle", amount: "1 Glass", benefit: "Metabolism" },
+            { time: "16:30", label: "Dopahar aur Sham darmiyan", amount: "2 Glass", benefit: "Energy booster" },
+            { time: "18:30", label: "Sham ke waqt", amount: "1 Glass", benefit: "Toxins nikalna" },
+            { time: "20:30", label: "Raat khane se pehle", amount: "1 Glass", benefit: "Hazm karne mein asani" },
+            { time: "22:00", label: "Sone se 1 ghanta pehle", amount: "1 Glass", benefit: "Haddiyon ki repair" }
+        ];
+
+        let snoozeTimer = null;
+
+        // Table load karna
+        const list = document.getElementById('schedule-list');
+        schedule.forEach(item => {
+            list.innerHTML += `<tr><td>${item.time}</td><td>${item.amount}</td><td>${item.benefit}</td></tr>`;
+        });
+
+        // Notification Enable
+        document.getElementById('enable-btn').onclick = async () => {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                document.getElementById('status-area').innerHTML = "<p style='color:green'>✅ Reminders Active Hain!</p>";
+                startTracking();
+            }
+        };
+
+        function startTracking() {
+            setInterval(() => {
+                const now = new Date();
+                const currentStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+                
+                const task = schedule.find(t => t.time === currentStr);
+                if (task) {
+                    triggerReminder(task);
+                }
+                updateNextReminder(currentStr);
+            }, 1000 * 60);
+        }
+
+        function triggerReminder(task) {
+            document.getElementById('notif-desc').innerText = `${task.label} (${task.amount})`;
+            document.getElementById('done-overlay').style.display = 'flex';
+            
+            new Notification("💧 Pani Ka Waqt!", {
+                body: `${task.label}: ${task.amount} peeyein.`,
+                icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png",
+                requireInteraction: true
+            });
+
+            // 5 Minute Reminder Logic
+            if (snoozeTimer) clearInterval(snoozeTimer);
+            snoozeTimer = setInterval(() => {
+                new Notification("⚠️ Yaad Dehani!", { body: "5 minute guzar gaye, pani pi lein!" });
+            }, 300000); // 5 mins
+        }
+
+        function markDone() {
+            document.getElementById('done-overlay').style.display = 'none';
+            if (snoozeTimer) clearInterval(snoozeTimer);
+            alert("Boht khoob! Agle glass tak active rahein.");
+        }
+
+        function updateNextReminder(nowStr) {
+            const next = schedule.find(t => t.time > nowStr) || schedule[0];
+            document.getElementById('next-timer').innerText = `Agla glass: ${next.time} (${next.label})`;
+        }
+
+        // Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7IH0pOw==');
+        }
+    </script>
+</body>
+</html>
