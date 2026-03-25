@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send FCM Notification
-        uses: appleboy/fcm-action@master
+        # Yahan rasta update kiya hai (appleboy/fcm-action@master ki jagah ye)
+        uses: appleboy/fcm-action@v0.1.0 
         with:
           service_account: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           token: "d7OyIRHiM55ud68XDsdTeM:APA91bHnfMMIwiOnGCFhZbHrecpNRGe2Cks03d6PiaiT3Eddyr46roKqXuuCRGD_8jXzb9eZvIjU59f4BPhqOxtZWNLjfmE4tu53Jx9g6zFwB_r2259xooE"
