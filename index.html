@@ -46,6 +46,14 @@
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    navigator.serviceWorker.register('firebase-messaging-sw.js', {
+    scope: '/water/'
+}).then((registration) => {
+    messaging.useServiceWorker(registration);
+    console.log("Service Worker Registered!");
+}).catch((err) => {
+    console.log("Service Worker Error:", err);
+});
     const messaging = firebase.messaging();
 
     const statusTxt = document.getElementById('status');
