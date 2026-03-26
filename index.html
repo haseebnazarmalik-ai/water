@@ -3,48 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pani Tracker - Saudi Time</title>
+    <title>Pani Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #f0f9ff; font-family: sans-serif; }
-        .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="bg-blue-50 flex items-center justify-center min-h-screen p-4">
 
-    <div class="card p-6 max-w-sm w-full text-center">
+    <div class="bg-white p-6 rounded-[30px] shadow-xl max-w-sm w-full text-center">
         <h1 class="text-2xl font-bold text-blue-600 mb-2">Pani Reminder 💧</h1>
-        <p class="text-gray-400 text-[10px] mb-6">Saudi Arabia Schedule (UTC+3)</p>
+        <p class="text-gray-400 text-[10px] mb-6">Saudi Arabia Time (UTC+3)</p>
 
-        <div id="scheduleContainer" class="space-y-3 mb-6">
-            <p class="text-gray-400 text-sm">Slots loading...</p>
-        </div>
+        <div id="scheduleContainer" class="space-y-3 mb-6 text-left">
+            </div>
 
-        <hr class="mb-4 opacity-50">
-
-        <button id="notifyBtn" class="text-xs text-blue-400 underline decoration-dotted">
+        <button onclick="setupNotifications()" class="text-xs text-blue-400 underline decoration-dotted">
             Setup Notifications 🔔
         </button>
-        
         <div id="tokenArea" class="mt-4 p-2 bg-gray-50 border border-dashed rounded text-[8px] text-gray-400 break-all hidden"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-dl.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBR1pl7vYjxX8iRQ_0b5B9XDRM1u9jbjPI",
-            authDomain: "water-aa9c4.firebaseapp.com",
-            projectId: "water-aa9c4",
-            storageBucket: "water-aa9c4.appspot.com",
-            messagingSenderId: "1056342373059",
-            appId: "1:1056342373059:web:968f230f89e496b864177c"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const messaging = getMessaging(app);
-
+    <script>
         const slots = [
             { id: 's1', time: '08:00 AM' },
             { id: 's2', time: '11:00 AM' },
@@ -58,7 +35,6 @@
             const container = document.getElementById('scheduleContainer');
             container.innerHTML = '';
             
-            // Check for daily reset
             const today = new Date().toDateString();
             if (localStorage.getItem('lastResetDate') !== today) {
                 slots.forEach(s => localStorage.removeItem(s.id));
@@ -68,50 +44,40 @@
             slots.forEach(slot => {
                 const isDone = localStorage.getItem(slot.id) === 'done';
                 const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100";
+                div.className = "flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100";
                 
                 div.innerHTML = `
-                    <div class="text-left">
-                        <p class="text-sm font-bold text-gray-700">${slot.time}</p>
-                        <p class="text-[10px] ${isDone ? 'text-green-500' : 'text-red-400'}">
-                            ${isDone ? 'Status: Done ✅' : 'Status: Pending ⏳'}
+                    <div>
+                        <p class="text-sm font-bold text-gray-800">${slot.time}</p>
+                        <p class="text-[10px] ${isDone ? 'text-green-500' : 'text-red-400'} font-bold">
+                            ${isDone ? 'DONE ✅' : 'PENDING ⏳'}
                         </p>
                     </div>
                     ${!isDone ? `
-                        <button onclick="markAsDone('${slot.id}')" class="bg-blue-500 text-white text-[10px] px-4 py-2 rounded-lg font-bold">
+                        <button onclick="markAsDone('${slot.id}')" class="bg-blue-500 text-white text-[10px] px-4 py-2 rounded-xl font-bold shadow-md">
                             DONE?
                         </button>
-                    ` : '<span class="text-green-500 font-bold text-sm">COMPLETED</span>'}
+                    ` : '<span class="text-green-500 font-black text-[10px]">COMPLETED</span>'}
                 `;
                 container.appendChild(div);
             });
         }
 
-        // Global function for the button
         window.markAsDone = (id) => {
-            if (confirm("Pani pi liya? Status update kar doon?")) {
+            if (confirm("Pani pi liya?")) {
                 localStorage.setItem(id, 'done');
                 renderSlots();
             }
         };
 
-        document.getElementById('notifyBtn').addEventListener('click', async () => {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    const token = await getToken(messaging, { vapidKey: 'BI5jSs1B8FxuSC_icOCaLbVMSD3IPfTKM6ieFjQOXMWUKD8yZCMkPOzYX24AsqocVh_dEUEOgOg282foqApOJIA' });
-                    const area = document.getElementById('tokenArea');
-                    area.innerText = token;
-                    area.classList.remove('hidden');
-                    alert("System Linked! Notifications are ON.");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Error: Notification setup failed.");
-            }
-        });
+        async function setupNotifications() {
+            alert("Checking Permissions...");
+            // Yahan humne Firebase import ko simple rakha hai testing ke liye
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') alert("Permission Granted! Notifications ON.");
+        }
 
-        // Start the app
+        // फौरन render karein
         renderSlots();
     </script>
 </body>
