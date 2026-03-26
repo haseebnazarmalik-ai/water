@@ -8,25 +8,25 @@
     <style>
         body { background: #f0f9ff; font-family: sans-serif; }
         .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .status-done { color: #10b981; font-weight: bold; }
-        .status-pending { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="card p-6 max-w-sm w-full text-center">
-        <h1 class="text-2xl font-bold text-blue-600 mb-4">Pani Reminder 💧</h1>
-        
-        <p class="text-gray-500 text-sm mb-6">Saudi Arabia Schedule (UTC+3)</p>
+        <h1 class="text-2xl font-bold text-blue-600 mb-2">Pani Reminder 💧</h1>
+        <p class="text-gray-400 text-[10px] mb-6">Saudi Arabia Schedule (UTC+3)</p>
 
         <div id="scheduleContainer" class="space-y-3 mb-6">
-            </div>
+            <p class="text-gray-400 text-sm">Slots loading...</p>
+        </div>
 
-        <button id="notifyBtn" class="text-xs text-gray-400 underline">
-            System Setup / Notifications On 🔔
+        <hr class="mb-4 opacity-50">
+
+        <button id="notifyBtn" class="text-xs text-blue-400 underline decoration-dotted">
+            Setup Notifications 🔔
         </button>
         
-        <div id="tokenArea" class="mt-4 text-[8px] text-gray-300 break-all hidden"></div>
+        <div id="tokenArea" class="mt-4 p-2 bg-gray-50 border border-dashed rounded text-[8px] text-gray-400 break-all hidden"></div>
     </div>
 
     <script type="module">
@@ -45,7 +45,6 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-        // Saudi Schedule Slots
         const slots = [
             { id: 's1', time: '08:00 AM' },
             { id: 's2', time: '11:00 AM' },
@@ -55,60 +54,64 @@
             { id: 's6', time: '11:00 PM' }
         ];
 
-        const container = document.getElementById('scheduleContainer');
-
         function renderSlots() {
+            const container = document.getElementById('scheduleContainer');
             container.innerHTML = '';
-            // Aaj ki date taake har roz status reset ho sake
-            const today = new Date().toDateString();
-            const lastReset = localStorage.getItem('lastResetDate');
             
-            if (lastReset !== today) {
+            // Check for daily reset
+            const today = new Date().toDateString();
+            if (localStorage.getItem('lastResetDate') !== today) {
                 slots.forEach(s => localStorage.removeItem(s.id));
                 localStorage.setItem('lastResetDate', today);
             }
 
             slots.forEach(slot => {
-                const status = localStorage.getItem(slot.id) === 'done';
+                const isDone = localStorage.getItem(slot.id) === 'done';
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100";
                 
                 div.innerHTML = `
                     <div class="text-left">
-                        <p class="text-sm font-semibold text-gray-700">${slot.time}</p>
-                        <p class="${status ? 'status-done' : 'status-pending'} text-xs">
-                            ${status ? 'Done ✅' : 'Pending ⏳'}
+                        <p class="text-sm font-bold text-gray-700">${slot.time}</p>
+                        <p class="text-[10px] ${isDone ? 'text-green-500' : 'text-red-400'}">
+                            ${isDone ? 'Status: Done ✅' : 'Status: Pending ⏳'}
                         </p>
                     </div>
-                    ${!status ? `
-                        <button onclick="markDone('${slot.id}')" class="bg-blue-500 text-white text-xs px-4 py-2 rounded-lg shadow-md active:scale-95">
-                            Done?
+                    ${!isDone ? `
+                        <button onclick="markAsDone('${slot.id}')" class="bg-blue-500 text-white text-[10px] px-4 py-2 rounded-lg font-bold">
+                            DONE?
                         </button>
-                    ` : '<div class="text-green-500 text-lg">✓</div>'}
+                    ` : '<span class="text-green-500 font-bold text-sm">COMPLETED</span>'}
                 `;
                 container.appendChild(div);
             });
         }
 
-        window.markDone = (id) => {
-            if (confirm("Kya aapne pani pi liya hai?")) {
+        // Global function for the button
+        window.markAsDone = (id) => {
+            if (confirm("Pani pi liya? Status update kar doon?")) {
                 localStorage.setItem(id, 'done');
                 renderSlots();
             }
         };
 
-        // Notification Setup
         document.getElementById('notifyBtn').addEventListener('click', async () => {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                const token = await getToken(messaging, { vapidKey: 'BI5jSs1B8FxuSC_icOCaLbVMSD3IPfTKM6ieFjQOXMWUKD8yZCMkPOzYX24AsqocVh_dEUEOgOg282foqApOJIA' });
-                const area = document.getElementById('tokenArea');
-                area.innerText = token;
-                area.classList.remove('hidden');
-                alert("Notifications Active!");
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await getToken(messaging, { vapidKey: 'BI5jSs1B8FxuSC_icOCaLbVMSD3IPfTKM6ieFjQOXMWUKD8yZCMkPOzYX24AsqocVh_dEUEOgOg282foqApOJIA' });
+                    const area = document.getElementById('tokenArea');
+                    area.innerText = token;
+                    area.classList.remove('hidden');
+                    alert("System Linked! Notifications are ON.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error: Notification setup failed.");
             }
         });
 
+        // Start the app
         renderSlots();
     </script>
 </body>
