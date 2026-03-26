@@ -3,41 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pani Reminder</title>
+    <title>Pani Tracker - Saudi Time</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #f0f9ff; font-family: sans-serif; }
         .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .status-done { color: #10b981; font-weight: bold; }
+        .status-pending { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="card p-8 max-w-sm w-full text-center">
-        <h1 class="text-3xl font-bold text-blue-600 mb-2">Pani Reminder 💧</h1>
+    <div class="card p-6 max-w-sm w-full text-center">
+        <h1 class="text-2xl font-bold text-blue-600 mb-4">Pani Reminder 💧</h1>
         
-        <div class="my-6 p-4 bg-blue-50 rounded-lg">
-            <p class="text-gray-600 text-sm">Aakhri baar pani piya:</p>
-            <p id="lastTime" class="text-xl font-bold text-blue-800">Abhi tak nahi</p>
-        </div>
+        <p class="text-gray-500 text-sm mb-6">Saudi Arabia Schedule (UTC+3)</p>
 
-        <button id="doneBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 mb-4">
-            Main ne Pani Pi Liya! ✅
+        <div id="scheduleContainer" class="space-y-3 mb-6">
+            </div>
+
+        <button id="notifyBtn" class="text-xs text-gray-400 underline">
+            System Setup / Notifications On 🔔
         </button>
-
-        <button id="notifyBtn" class="text-sm text-gray-500 underline">
-            Notifications On Karein 🔔
-        </button>
-
-        <div id="setupStatus" class="mt-4 hidden text-green-600 font-bold">!Setup Mukammal ✅</div>
-
-        <div class="mt-6 p-2 border border-orange-300 border-dashed rounded text-[10px] text-gray-400 break-all">
-            Token: <span id="tokenDisplay">Loading...</span>
-        </div>
+        
+        <div id="tokenArea" class="mt-4 text-[8px] text-gray-300 break-all hidden"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-dl.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-dl.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBR1pl7vYjxX8iRQ_0b5B9XDRM1u9jbjPI",
@@ -51,34 +45,71 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-        const lastTimeDisplay = document.getElementById('lastTime');
-        const doneBtn = document.getElementById('doneBtn');
-        const tokenDisplay = document.getElementById('tokenDisplay');
+        // Saudi Schedule Slots
+        const slots = [
+            { id: 's1', time: '08:00 AM' },
+            { id: 's2', time: '11:00 AM' },
+            { id: 's3', time: '02:00 PM' },
+            { id: 's4', time: '05:00 PM' },
+            { id: 's5', time: '08:00 PM' },
+            { id: 's6', time: '11:00 PM' }
+        ];
 
-        // Load last saved time from phone memory
-        const savedTime = localStorage.getItem('lastDrink');
-        if (savedTime) lastTimeDisplay.innerText = savedTime;
+        const container = document.getElementById('scheduleContainer');
 
-        // Done Button Logic
-        doneBtn.addEventListener('click', () => {
-            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            lastTimeDisplay.innerText = now;
-            localStorage.setItem('lastDrink', now);
+        function renderSlots() {
+            container.innerHTML = '';
+            // Aaj ki date taake har roz status reset ho sake
+            const today = new Date().toDateString();
+            const lastReset = localStorage.getItem('lastResetDate');
             
-            // Effect
-            doneBtn.classList.replace('bg-blue-500', 'bg-green-500');
-            setTimeout(() => doneBtn.classList.replace('bg-green-500', 'bg-blue-500'), 1000);
-        });
+            if (lastReset !== today) {
+                slots.forEach(s => localStorage.removeItem(s.id));
+                localStorage.setItem('lastResetDate', today);
+            }
+
+            slots.forEach(slot => {
+                const status = localStorage.getItem(slot.id) === 'done';
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100";
+                
+                div.innerHTML = `
+                    <div class="text-left">
+                        <p class="text-sm font-semibold text-gray-700">${slot.time}</p>
+                        <p class="${status ? 'status-done' : 'status-pending'} text-xs">
+                            ${status ? 'Done ✅' : 'Pending ⏳'}
+                        </p>
+                    </div>
+                    ${!status ? `
+                        <button onclick="markDone('${slot.id}')" class="bg-blue-500 text-white text-xs px-4 py-2 rounded-lg shadow-md active:scale-95">
+                            Done?
+                        </button>
+                    ` : '<div class="text-green-500 text-lg">✓</div>'}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.markDone = (id) => {
+            if (confirm("Kya aapne pani pi liya hai?")) {
+                localStorage.setItem(id, 'done');
+                renderSlots();
+            }
+        };
 
         // Notification Setup
         document.getElementById('notifyBtn').addEventListener('click', async () => {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 const token = await getToken(messaging, { vapidKey: 'BI5jSs1B8FxuSC_icOCaLbVMSD3IPfTKM6ieFjQOXMWUKD8yZCMkPOzYX24AsqocVh_dEUEOgOg282foqApOJIA' });
-                tokenDisplay.innerText = token;
-                document.getElementById('setupStatus').classList.remove('hidden');
+                const area = document.getElementById('tokenArea');
+                area.innerText = token;
+                area.classList.remove('hidden');
+                alert("Notifications Active!");
             }
         });
+
+        renderSlots();
     </script>
 </body>
 </html>
